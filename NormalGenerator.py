@@ -35,19 +35,19 @@ def vaNormal(n):
 					xy.append(gN)
 				accept = False
 		Tntry+=ntry
-	plt.plot(x, xy, linestyle='--', color='b', marker='s', markersize = 0.5, 
-         linewidth=0.0)
-	plt.title('Grafico com as amostras do gerador')
+	# plt.plot(x, xy, linestyle='--', color='b', marker='s', markersize = 0.5,
+    #      linewidth=0.0)
+	plt.hist(x, 70)
+	plt.title('Histograma com as amostras do gerador')
 	plt.xlabel('x')
-	plt.ylabel('f(x)')
-	plt.savefig("AmostrasGerador.png")
+	plt.ylabel('freq')
+	plt.savefig("AmostrasGeradorHIST.png")
 	plt.cla()
-	plt.title('Grafico com as amostras do numpy')
+	plt.title('Histograma com as amostras do numpy')
 	plt.xlabel('x')
-	plt.ylabel('f(x)')
-	plt.plot(xNP, xyNP, linestyle='--', color='b', marker='s', markersize = 0.5, 
-         linewidth=0.0)
-	plt.savefig("AmostrasNP.png")
+	plt.ylabel('freq')
+	plt.hist(xNP, 70)
+	plt.savefig("AmostrasNPHIST.png")
 	plt.cla()
 	stats.probplot(x, dist="norm", plot=plt)
 	plt.savefig('QQplot.png')
