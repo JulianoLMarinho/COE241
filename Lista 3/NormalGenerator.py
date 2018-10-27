@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from math import pi
-import matplotlib.pyplot as pltS
+import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import scipy.stats as stats
 
