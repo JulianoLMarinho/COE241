@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from math import pi
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as pltS
 import matplotlib.mlab as mlab
 import scipy.stats as stats
 
@@ -51,7 +51,7 @@ def vaNormal(n):
 	plt.cla()
 	stats.probplot(x, dist="norm", plot=plt)
 	plt.savefig('QQplot.png')
-	print "c calculado = ", Tntry*1.0/n, "\nc teórico = ",(2.0*np.exp(1.0)/pi)**(1.0/2.0)
+	print("c calculado = ", Tntry * 1.0 / n, "\nc teórico = ", (2.0 * np.exp(1.0) / pi) ** (1.0 / 2.0))
 	return x, xNP
 
 c = (2.0*np.exp(1.0)/pi)**(1.0/2.0)
