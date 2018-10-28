@@ -36,17 +36,9 @@ def SimulateXPMF(seed, r, pmf, pmfX):
     for i in range(len(pmf)):
         Eteorico += pmf[i]*pmfX[i]
     Esimulado = sum(S)*1.0/len(S)
-    print "Média teórica = ", Eteorico, "\nMédia experimental = ", Esimulado
+    print "Média teórica = ", Eteorico, "\nMédia simulada = ", Esimulado
 
     return 1
-
-
-
-
-
-# pmfT = [0.11,0.09,0.11,0.09,0.11,0.09,0.11,0.09,0.11,0.09]
-# pmfX = [5,6,7,8,9,10,11,12,13,14]
-# print SimulateXPMF(4,5000,pmfT, pmfX)
 
 #Função da questão 2
 def func2(u):
@@ -62,8 +54,12 @@ def func3b(u):
     """intervalo de -e/2 < u < 0"""
     return math.log(-2 * u) / -2
 
+def func4(x, l):
+    c = (2.0/l)*(math.exp(2.0*l-1))
+    return ((x**2.0)*math.exp(-x*(1.0-l)))/(2.0*c*l)
 
 def randomVariable(questao, seed, t, range):
+    """Questões 2 e 3"""
     U = CongruenteLinear(seed, t, range)
     X = []
     for i in U:
@@ -74,14 +70,36 @@ def randomVariable(questao, seed, t, range):
                 X.append(func3a(i))
             if -math.exp(1)/2 <= i and i < 0:
                 X.append(func3b(i))
+    if questao==2:
+        print "Média teórica = 0.58198", "\nMédia simulada = ", sum(X)/len(X)
+    if questao==3:
+        print "Média teórica = 0", "\nMédia simulada = ", sum(X)/len(X)
 
-    print sum(X)/len(X)
 
 
+def acceptanceRejection(r, l):
+    """Gera uma lista de va com distribuição func4, tamanho r e lamda l"""
+    X = []
+    while len(X)<r:
+        y = np.random.exponential(l)
+        u1 = np.random.uniform(0, 1)
+        if u1<=func4(y, l):
+            X.append(y)
     # plt.hist(X, 50)
     # plt.show()
-    # print X
 
-randomVariable(2, 234, 2000000, (1/(math.exp(1)-1), math.exp(1)/(math.exp(1)-1)))
-randomVariable(3, 7, 2000000, (-math.exp(1)/2, math.exp(1)/2))
+    print "Média simulada = ", sum(X)*1.0/len(X)
+    return 0
+
+
+print "Questão 1:\n"
+pmfT = [0.11,0.09,0.11,0.09,0.11,0.09,0.11,0.09,0.11,0.09]
+pmfX = [5,6,7,8,9,10,11,12,13,14]
+print SimulateXPMF(4,50000,pmfT, pmfX)
+print "\nQuestão 2:\n"
+randomVariable(2, 234, 50000, (1/(math.exp(1)-1), math.exp(1)/(math.exp(1)-1)))
+print "\nQuestão 3:\n"
+randomVariable(3, 7, 50000, (-math.exp(1)/2, math.exp(1)/2))
+print "\nQuestão 4:\n"
+acceptanceRejection(50000, 1)
 # print CongruenteLinear(4, 20, (0, math.exp(1)))
