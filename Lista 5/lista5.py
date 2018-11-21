@@ -55,7 +55,7 @@ def func3b(u):
     return math.log(-2 * u) / -2
 
 def func4(x, l):
-    c = (2.0/l)*(math.exp(2.0*l-1))
+    c = (2.0/l)*(math.exp(2.0*(l-1)))
     return ((x**2.0)*math.exp(-x*(1.0-l)))/(2.0*c*l)
 
 def randomVariable(questao, seed, t, range):
@@ -66,9 +66,9 @@ def randomVariable(questao, seed, t, range):
         if questao == 2:
             X.append(func2(i))
         if questao == 3:
-            if 0<=i and i<=math.exp(1)/2:
+            if 0<=i and i<=1/2:
                 X.append(func3a(i))
-            if -math.exp(1)/2 <= i and i < 0:
+            if -1/2 <= i and i < 0:
                 X.append(func3b(i))
     if questao==2:
         print "Média teórica = 0.58198", "\nMédia simulada = ", sum(X)/len(X)
@@ -99,7 +99,7 @@ print SimulateXPMF(4,50000,pmfT, pmfX)
 print "\nQuestão 2:\n"
 randomVariable(2, 234, 50000, (1/(math.exp(1)-1), math.exp(1)/(math.exp(1)-1)))
 print "\nQuestão 3:\n"
-randomVariable(3, 7, 50000, (-math.exp(1)/2, math.exp(1)/2))
+randomVariable(3, 7, 50000, (-1/2, 1/2))
 print "\nQuestão 4:\n"
 acceptanceRejection(50000, 1)
 # print CongruenteLinear(4, 20, (0, math.exp(1)))

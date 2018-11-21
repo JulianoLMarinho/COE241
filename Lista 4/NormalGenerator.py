@@ -50,7 +50,8 @@ def vaNormal(n):
 	plt.savefig("AmostrasNPHIST.png")
 	plt.cla()
 	stats.probplot(x, dist="norm", plot=plt)
-	plt.savefig('QQplot.png')
+	plt.show()
+	#plt.savefig('QQplot.png')
 	print("c calculado = ", Tntry * 1.0 / n, "\nc teórico = ", (2.0 * np.exp(1.0) / pi) ** (1.0 / 2.0))
 	return x, xNP
 
