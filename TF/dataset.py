@@ -64,6 +64,16 @@ class Dataset:
                 j.append(self.lognormPmf(i, m, o2))
             ax.plot(range(int(math.floor(self.data[col].min())), int(math.ceil(self.data[col].max()))), j, label="Lognormal")
 
+
+            self.data[col].hist(density=True)
+            v = self.mleWeibull(col)
+            j = []
+            for i in range(int(math.floor(self.data[col].min())), int(math.ceil(self.data[col].max()))):
+                j.append(self.weibPmf(i,v))
+            ax.plot(range(int(math.floor(self.data[col].min())), int(math.ceil(self.data[col].max()))), j,
+                    label="Weibull")
+
+
             legend = ax.legend()
             legend.get_frame()
             plt.savefig("histogram_pmf/" + col + ".png")
@@ -73,24 +83,34 @@ class Dataset:
             stats.probplot(self.data[col], dist="expon", sparams=(0,1.0/l), plot=plt)
             plt.savefig("PPPlot/"+col+"_expon.png")
             plt.cla()
+            self.ksm("expon", col, (0,1.0/l))
+
 
             plt.title('ProbabilityPlot - '+col+'_Norm')
             stats.probplot(self.data[col], dist="norm", sparams=(gm, go2), plot=plt)
             plt.savefig("PPPlot/"+col+"_norm.png")
             plt.cla()
+            self.ksm("norm", col, (gm, go2))
+
 
             plt.title('ProbabilityPlot - '+col+'_Lognorm')
             stats.probplot(self.data[col], dist="lognorm", sparams=(o2, math.exp(m)), plot=plt)
             plt.savefig("PPPlot/"+col+"_lognorm.png")
             plt.cla()
+            self.ksm("lognorm", col, (o2, math.exp(m)))
+
+
+            plt.title('ProbabilityPlot - ' + col + '_Weibull')
+            stats.probplot(self.data[col], dist="exponweib", sparams=(v), plot=plt)
+            plt.savefig("PPPlot/" + col + "_Weibull.png")
+            plt.cla()
+            self.ksm("exponweib", col, v)
 
 
     def mleExp(self, col):
 
-        print "Exponential"
         c = self.data[col].count()*1.0
         l = c / self.data[col].sum()
-        print "lambda = ",l
         return l
 
     def mleGauss(self, col):
@@ -99,10 +119,6 @@ class Dataset:
         for i in self.data[col]:
             temp += (i-m)**2
         o2 = temp*1.0/self.data[col].count()
-
-        print "Gaussiam"
-        print "média: ", m
-        print "desvio padrao",o2
         return m, o2
 
 
@@ -117,24 +133,26 @@ class Dataset:
             temp2 += (math.log(i) - m)**2
 
         o2 = (temp2/self.data[col].count())
-
-        print "Lognormal"
-        print "média = ", m
-        print "desvio = ", o2
         return m, o2
 
+    def mleWeibull(self, col):
+        #v = stats.weibull_min.fit_loc_scale(self.data[col], 1, 1)
+        v = stats.exponweib.fit(self.data[col], 1, 1, scale=02, loc=0)
+
+        return v
 
     def expPmf(self, x, l):
         return l*math.exp(-l*x)
 
-    def weib(self, x,lamb,k):
-        return (k / lamb) * (x / lamb)**(k-1) * np.exp(-(x/lamb)**k)
+    def weibPmf(self, x, v):
+        r = stats.exponweib.pdf(x, *v)
+        return r
 
     def gaussPmf(self, x, m, o2):
         return ((2*math.pi*o2)**(-0.5))*math.exp(-0.5*(((x - m)**2)/o2))
 
     def lognormPmf(self, x, m, o2):
-        p1 = 1.0/(x*o2*math.sqrt(2*math.pi))
+        p1 = 1.0/(x*math.sqrt(o2)*math.sqrt(2*math.pi))
         p2 = (-(math.log(x)-m)**2)/(2*o2)
         return p1*math.exp(p2)
 
@@ -159,3 +177,18 @@ class Dataset:
 
         for i in r:
             print i
+
+
+    def ksm(self, dis, col, p):
+        print "TESTE: ",stats.kstest(self.data[col], cdf=dis, args= p)
+
+
+    def scatterPlot(self, col1):
+        for col in self.data:
+            if col != "VO2":
+                plt.scatter(self.data[col1], self.data[col])
+                plt.title(""+col1+" X "+col+"")
+                plt.xlabel(col1)
+                plt.ylabel(col)
+                plt.savefig("scatterplot/" + col1 +"X"+col+ ".png")
+                plt.cla()
