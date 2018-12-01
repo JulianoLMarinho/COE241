@@ -9,6 +9,7 @@ from scipy.stats import expon
 import scipy.stats as stats
 from sklearn import linear_model
 from sklearn.metrics import mean_squared_error, r2_score
+import collections
 
 
 
@@ -231,6 +232,68 @@ class Dataset:
 
         plt.show()
 
+
+
+    def empiric(self,dt, x = 0):
+        n = 10
+        interBin = (self.data["CargaFinal"].max() - self.data["CargaFinal"].min()) / n
+        probs = []
+        dados = {}
+        min = self.data["CargaFinal"].min()
+        for i in range(n):
+            v1 = min + (i*(interBin+0.0000001))
+            v2 = min + (i*interBin) + interBin
+            VO1 = self.data.drop(self.data[(self.data["CargaFinal"] < (v1))].index)
+            VO1 = VO1.drop(VO1[(VO1["CargaFinal"] > (v2))].index)
+            proCF = VO1["CargaFinal"].sum() / self.data["CargaFinal"].sum()
+
+
+            dt1 = dt.drop(dt[(dt["CargaFinal"] < (v1))].index)
+            dt1 = dt1.drop(dt1[(dt1["CargaFinal"] > (v2))].index)
+            proVO = dt1["VO2"].sum()/dt["VO2"].sum()
+
+            probs.append(proCF)
+            dados[v1] = [proCF, proVO, proCF*proVO]
+
+        s = 0.0
+        for i in dados:
+            s += dados[i][2]
+
+        for i in dados:
+            dados[i].append(dados[i][2]/s)
+
+        od = collections.OrderedDict(sorted(dados.items()))
+        return od
+
     def bayesInference(self):
-        VO1 = self.data["VO2"].drop(self.data[(self.data["VO2"] < 35.0)].index)
-        VO2 = self.data["VO2"].drop(self.data[(self.data["VO2"] >= 35.0)].index)
+        VO1 = self.data.drop(self.data[(self.data["VO2"] < 35.0)].index)
+        VO2 = self.data.drop(self.data[(self.data["VO2"] >= 35.0)].index)
+        result = []
+        f = self.empiric(VO1)
+        g = self.empiric(VO2)
+
+        result = {}
+        d = 0
+        for i in f:
+            r = []
+            r.append(g[i][0])
+            r.append(g[i][1])
+            r.append(g[i][2])
+            r.append(g[i][3])
+            r.append(f[i][1])
+            r.append(f[i][1] * g[i][3])
+            result[i] = r
+
+
+
+        od = collections.OrderedDict(sorted(result.items()))
+        print od
+
+        som = 0
+        for i in result:
+            som += result[i][5]
+
+        print som
+
+
+
