@@ -7,6 +7,8 @@ import math
 import numpy as np
 from scipy.stats import expon
 import scipy.stats as stats
+from sklearn import linear_model
+from sklearn.metrics import mean_squared_error, r2_score
 
 
 
@@ -192,3 +194,43 @@ class Dataset:
                 plt.ylabel(col)
                 plt.savefig("scatterplot/" + col1 +"X"+col+ ".png")
                 plt.cla()
+
+    def linearRegression(self):
+        #self.data['IDADE'] = self.data['IDADE'].apply(np.log)
+        X = self.data.iloc[:, 1:2].values
+        Y = self.data.iloc[:, 3].values
+        from sklearn.model_selection import train_test_split
+        x_train, x_test, y_train, y_test = train_test_split(
+            X,
+            Y,
+            test_size=0.2  # ,
+            # random_state = 20180904
+        )
+
+        print len(x_train)
+
+        print x_train
+        regr = linear_model.LinearRegression(n_jobs=4,fit_intercept=True)
+
+        regr.fit(x_train, y_train)
+
+        pred = regr.predict(x_test)
+
+        print 'Coefs:', regr.coef_
+        print 'in: ', regr.intercept_
+        print 'function: y = ',regr.coef_[0],'x + ',regr.intercept_
+        print("Mean squared error: %.2f"
+              % mean_squared_error(y_test, pred))
+        print('Variance score: %.2f' % r2_score(y_test, pred))
+
+        plt.scatter(x_test, y_test, color='black')
+        plt.plot(x_test, pred, color='blue', linewidth=3)
+
+        plt.xticks(())
+        plt.yticks(())
+
+        plt.show()
+
+    def bayesInference(self):
+        VO1 = self.data["VO2"].drop(self.data[(self.data["VO2"] < 35.0)].index)
+        VO2 = self.data["VO2"].drop(self.data[(self.data["VO2"] >= 35.0)].index)
