@@ -18,11 +18,35 @@ class Dataset:
     def __init__(self, path_to_csv):
         self.data = pd.read_csv(path_to_csv)
 
+    def FDE(self, x, col):
+        d = np.sort(self.data[col].iloc[0:-1].values)
+        for i in range(len(d)):
+            if x >= d.max():
+                return 1
+            if d[i] > x:
+                return d[0:i].sum()*1.0/d.sum()
+
+    def graficoFDE(self):
+        for col in self.data:
+            x = []
+            y = []
+            m1 = int(self.data[col].min())
+            m2 = int(self.data[col].max())
+            for i in range(m1-1, m2+1):
+                x.append(i)
+                y.append(self.FDE(i, col))
+            plt.title("Funcao Distribuicao Empirica: "+col)
+            plt.xlabel("x")
+            plt.ylabel("FDE(x)")
+            plt.plot(x, y)
+            plt.savefig('fde/fde_' + col + '.png')
+            plt.cla()
 
     def histogramas(self):
         for col in self.data:
             histo = sns.distplot(self.data[col])
             fig = histo.get_figure()
+            fig.title("Histograma: " + col)
             fig.savefig('histogramas/Histogram_' + col + '.png')
             # fig.cla()
             fig.clf()
@@ -43,6 +67,7 @@ class Dataset:
 
             self.data[col].hist(density=True)
             l = self.mleExp(col)
+            print "E: Lambda: ", l
             p = []
             fig, ax = plt.subplots()
             for i in range(int(math.floor(self.data[col].min())), int(math.ceil(self.data[col].max()))):
@@ -52,6 +77,7 @@ class Dataset:
 
             self.data[col].hist(density=True)
             gm, go2 = self.mleGauss(col)
+            print "G: Média e O2", gm, go2
             j = []
             for i in range(int(math.floor(self.data[col].min())), int(math.ceil(self.data[col].max()))):
                 j.append(self.gaussPmf(i, gm, go2))
@@ -62,6 +88,7 @@ class Dataset:
 
             self.data[col].hist(density=True)
             m, o2 = self.mleLogNormal(col)
+            print "LN: m e o2", m, o2
             j = []
             for i in range(int(math.floor(self.data[col].min())), int(math.ceil(self.data[col].max()))):
                 j.append(self.lognormPmf(i, m, o2))
@@ -70,6 +97,7 @@ class Dataset:
 
             self.data[col].hist(density=True)
             v = self.mleWeibull(col)
+            print "W: v", v
             j = []
             for i in range(int(math.floor(self.data[col].min())), int(math.ceil(self.data[col].max()))):
                 j.append(self.weibPmf(i,v))
@@ -198,7 +226,7 @@ class Dataset:
 
     def linearRegression(self):
         #self.data['IDADE'] = self.data['IDADE'].apply(np.log)
-        X = self.data.iloc[:, 1:2].values
+        X = self.data.iloc[:, 2:3].values
         Y = self.data.iloc[:, 3].values
         from sklearn.model_selection import train_test_split
         x_train, x_test, y_train, y_test = train_test_split(
@@ -208,9 +236,6 @@ class Dataset:
             # random_state = 20180904
         )
 
-        print len(x_train)
-
-        print x_train
         regr = linear_model.LinearRegression(n_jobs=4,fit_intercept=True)
 
         regr.fit(x_train, y_train)
@@ -229,10 +254,11 @@ class Dataset:
 
         plt.xticks(())
         plt.yticks(())
+        plt.title("Carga Final X VO2")
+        plt.xlabel("VO2")
+        plt.ylabel("Carga Final")
 
-        plt.show()
-
-
+        plt.savefig("regressao/ Carga Final X VO2.png")
 
     def empiric(self,dt, x = 0):
         n = 10
@@ -250,7 +276,13 @@ class Dataset:
 
             dt1 = dt.drop(dt[(dt["CargaFinal"] < (v1))].index)
             dt1 = dt1.drop(dt1[(dt1["CargaFinal"] > (v2))].index)
-            proVO = dt1["VO2"].sum()/dt["VO2"].sum()
+            sdt1 = dt1["VO2"].sum()
+            sdt = dt["VO2"].sum()
+
+            if math.isnan(sdt1):
+                sdt1 = 0
+
+            proVO = sdt1/sdt
 
             probs.append(proCF)
             dados[v1] = [proCF, proVO, proCF*proVO]
@@ -266,11 +298,34 @@ class Dataset:
         return od
 
     def bayesInference(self):
+
+        file = open("result1.csv", "w")
+
         VO1 = self.data.drop(self.data[(self.data["VO2"] < 35.0)].index)
         VO2 = self.data.drop(self.data[(self.data["VO2"] >= 35.0)].index)
-        result = []
+
         f = self.empiric(VO1)
         g = self.empiric(VO2)
+        print f
+        line = "Hypotesis; Prior; Likelihood; Bayes Numerator; Posterior\n"
+        file.writelines(line)
+        for i in f:
+            line = ""+str(i)+";"
+            for j in f[i]:
+                line+=""+str(j)+";"
+            line+="\n"
+            file.writelines(line)
+
+        file2 = open("result2.csv", "w")
+        line2 = "Hypotesis; Prior; Likelihood; Bayes Numerator; Posterior\n"
+        file2.writelines(line2)
+        for i in g:
+            line2 =""+str(i)+";"
+            for j in g[i]:
+                line2 += "" + str(j) + ";"
+            line2 += "\n"
+            file2.writelines(line2)
+
 
         result = {}
         d = 0
@@ -284,14 +339,22 @@ class Dataset:
             r.append(f[i][1] * g[i][3])
             result[i] = r
 
-
-
         od = collections.OrderedDict(sorted(result.items()))
-        print od
+
+        file3 = open("result3.csv", "w")
+        line3 = "Hyp.; Prior; Likel. 1; Bayes Num. 1; Post. 1; Likel. 2; Post. 1 x likel. 2\n"
+        file3.writelines(line3)
+        for i in od:
+            line3 = ""+str(i)+";"
+            for j in od[i]:
+                line3 += "" + str(j) + ";"
+            line3 += "\n"
+            file3.writelines(line3)
 
         som = 0
         for i in result:
             som += result[i][5]
+
 
         print som
 
